@@ -1,0 +1,10 @@
+{
+  "projectId": 1,
+  "sessionId": 2,
+  "env": "DESKTOP-KC",
+  "user": {
+    "name": "Konrad",
+    "login": "KC",
+    "email": "KC@qa-academy.by"
+  }
+}
