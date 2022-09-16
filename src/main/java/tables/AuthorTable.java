@@ -10,7 +10,6 @@ import java.sql.SQLException;
 
 public class AuthorTable {
 
-    // TODO: column names should be stored somewhere else (json? enum?) and only referenced here
     public static final String SELECT_ID_WHERE_LOGIN_QUERY = "SELECT id FROM author WHERE login = ?";
     public static final String INSERT_AUTHOR_QUERY = "INSERT INTO author (name, login, email) VALUES (?, ?, ?)";
     public static final String COUNT_AUTHORS_WITH_LOGIN = "SELECT COUNT(id) from author where login = ?";
@@ -51,6 +50,8 @@ public class AuthorTable {
             return rs.getInt("COUNT(ID)") == 1;
         } catch (SQLException e) {
             logger.error("Error while checking if author is in db: " + e.getMessage());
+        } finally {
+            DatabaseUtils.closeConnection();
         }
         return false;
     }

@@ -10,6 +10,7 @@ public class ProcessingDataTest extends BaseTestCaseTwo {
 
     @Test(dataProvider = "randomTests")
     public void simulateTest(TestModel testModel) {
+        logger.info("Simulating executing test %s", testModel.getName());
         testModel.setStatusId(new Random().nextInt(3) + 1);
         testModel.setStartTime(new Timestamp(System.currentTimeMillis()));
         try {
@@ -19,6 +20,7 @@ public class ProcessingDataTest extends BaseTestCaseTwo {
         }
         testModel.setEndTime(new Timestamp(System.currentTimeMillis()));
 
+        logger.info("Updating previously created records with new results from test simulation");
         TestTable.updateTest(testModel);
     }
 }

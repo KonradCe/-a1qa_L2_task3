@@ -21,7 +21,7 @@ public class BaseTestCaseOne {
 
     @AfterMethod
     public void afterTest(ITestResult result) {
-        logger.info("Test tear down");
+        logger.info("Test tear down - inserting test results into test table");
         TestTable.insertTest(TestModel.createFromTestNgResult(result));
     }
 }

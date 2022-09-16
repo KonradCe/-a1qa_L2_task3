@@ -5,21 +5,24 @@ import models.TestModel;
 import utils.DatabaseUtils;
 import utils.StringUtils;
 
-import javax.xml.crypto.Data;
-import java.sql.*;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 
 public class TestTable {
 
+    // storing SQL queries as string probably isn't the best practice,
+    // this would probably be solved with a help of external db utils / wrappers etc.
     public static final String SELECT_RANDOM_TESTS_QUERY = "SELECT * FROM test where id LIKE ? LIMIT 10";
-    // TODO: column names should be stored somewhere else (json? enum?) and only referenced here
+    public static final String DELETE_TEST_QUERY = "DELETE FROM test WHERE id = ?";
     private static final String INSERT_QUERY = "INSERT INTO test " +
             "(name, status_id, method_name, project_id, session_id, start_time, end_time, env, browser, author_id) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     private static final String UPDATE_QUERY = "UPDATE test set " +
             "name = ?, status_id = ?, method_name = ?, project_id = ?, session_id = ?, start_time = ?, end_time = ?, env = ?, browser = ?, author_id = ? " +
             "WHERE id = ?";
-    public static final String DELETE_TEST_QUERY = "DELETE FROM test WHERE id = ?";
     private static final Logger logger = Logger.getInstance();
 
     public static int insertTest(TestModel testModel) {
@@ -59,7 +62,6 @@ public class TestTable {
         } finally {
             DatabaseUtils.closeConnection();
         }
-
     }
 
     public static void deleteTest(int testId) {
@@ -71,6 +73,8 @@ public class TestTable {
             logger.info("Deleted %d rows", deletedRowsNb);
         } catch (SQLException e) {
             logger.error("Error deleting record from test table: " + e.getMessage());
+        } finally {
+            DatabaseUtils.closeConnection();
         }
     }
 
@@ -87,10 +91,11 @@ public class TestTable {
         statement.setInt(10, testModel.getAuthorId());
     }
 
-    public static ArrayList<Object[]> getRandomTests() {
+    public static ArrayList<Object[]> getSemiRandomTests() {
         ArrayList<Object[]> result = new ArrayList<>();
         PreparedStatement statement = null;
         String randomIdDigits = StringUtils.getRandomDoubleDigitString();
+        logger.info("Looking up to 10 test records which contain repeating digits in id: " + randomIdDigits);
         try {
             statement = DatabaseUtils.getConnection().prepareStatement(SELECT_RANDOM_TESTS_QUERY);
             statement.setString(1, randomIdDigits);
@@ -98,7 +103,6 @@ public class TestTable {
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {
                 TestModel testModel = new TestModel();
-                // TODO: column names should be stored somewhere else (json? enum?) and only referenced here
                 testModel.setId(rs.getInt("id"));
                 testModel.setName(rs.getString("name"));
                 testModel.setStatusId(rs.getInt("status_id"));
