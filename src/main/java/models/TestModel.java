@@ -127,8 +127,4 @@ public class TestModel {
     public void setAuthorId(int authorId) {
         this.authorId = authorId;
     }
-
-    public void updateToCurrentProject() {
-        this.projectId = Integer.parseInt(testData.getValue("/projectId").toString());
-    }
 }

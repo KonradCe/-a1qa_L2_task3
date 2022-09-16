@@ -5,9 +5,8 @@ import models.TestModel;
 import utils.DatabaseUtils;
 import utils.StringUtils;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import javax.xml.crypto.Data;
+import java.sql.*;
 import java.util.ArrayList;
 
 public class TestTable {
@@ -17,31 +16,75 @@ public class TestTable {
     private static final String INSERT_QUERY = "INSERT INTO test " +
             "(name, status_id, method_name, project_id, session_id, start_time, end_time, env, browser, author_id) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String UPDATE_QUERY = "UPDATE test set " +
+            "name = ?, status_id = ?, method_name = ?, project_id = ?, session_id = ?, start_time = ?, end_time = ?, env = ?, browser = ?, author_id = ? " +
+            "WHERE id = ?";
+    public static final String DELETE_TEST_QUERY = "DELETE FROM test WHERE id = ?";
     private static final Logger logger = Logger.getInstance();
 
-    public static void insertTest(TestModel testModel) {
-        PreparedStatement statement = null;
+    public static int insertTest(TestModel testModel) {
+        PreparedStatement insertStatement = null;
+        int generatedId = -1;
         try {
-            statement = DatabaseUtils.getConnection().prepareStatement(INSERT_QUERY);
-            statement.setString(1, testModel.getName());
-            statement.setInt(2, testModel.getStatusId());
-            statement.setString(3, testModel.getMethodName());
-            statement.setInt(4, testModel.getProjectId());
-            statement.setInt(5, testModel.getSessionId());
-            statement.setTimestamp(6, testModel.getStartTime());
-            statement.setTimestamp(7, testModel.getEndTime());
-            statement.setString(8, testModel.getEnv());
-            statement.setString(9, testModel.getBrowser());
-            statement.setInt(10, testModel.getAuthorId());
+            insertStatement = DatabaseUtils.getConnection().prepareStatement(INSERT_QUERY, Statement.RETURN_GENERATED_KEYS);
+            fillOutStatementWithTestData(insertStatement, testModel);
 
-            int insertedRows = statement.executeUpdate();
-            System.out.println(insertedRows);
+            int insertedRows = insertStatement.executeUpdate();
             logger.info("Inserted %d rows", insertedRows);
+            ResultSet generatedIds = insertStatement.getGeneratedKeys();
+            if (generatedIds.next()) {
+                generatedId = generatedIds.getInt(1);
+            } else {
+                throw new SQLException("Inserting test data, no Id obtained.");
+            }
         } catch (SQLException e) {
             logger.error("Error inserting into test table: " + e.getMessage());
         } finally {
             DatabaseUtils.closeConnection();
         }
+        return generatedId;
+    }
+
+    public static void updateTest(TestModel testModel) {
+        PreparedStatement updateStatement = null;
+        try {
+            updateStatement = DatabaseUtils.getConnection().prepareStatement(UPDATE_QUERY);
+            fillOutStatementWithTestData(updateStatement, testModel);
+            updateStatement.setInt(11, testModel.getId());
+
+            int updatedRowsNb = updateStatement.executeUpdate();
+            logger.info("Updated %d rows", updatedRowsNb);
+        } catch (SQLException e) {
+            logger.error("Error updating records in test table: " + e.getMessage());
+        } finally {
+            DatabaseUtils.closeConnection();
+        }
+
+    }
+
+    public static void deleteTest(int testId) {
+        PreparedStatement deleteStatement = null;
+        try {
+            deleteStatement = DatabaseUtils.getConnection().prepareStatement(DELETE_TEST_QUERY);
+            deleteStatement.setInt(1, testId);
+            int deletedRowsNb = deleteStatement.executeUpdate();
+            logger.info("Deleted %d rows", deletedRowsNb);
+        } catch (SQLException e) {
+            logger.error("Error deleting record from test table: " + e.getMessage());
+        }
+    }
+
+    private static void fillOutStatementWithTestData(PreparedStatement statement, TestModel testModel) throws SQLException {
+        statement.setString(1, testModel.getName());
+        statement.setInt(2, testModel.getStatusId());
+        statement.setString(3, testModel.getMethodName());
+        statement.setInt(4, testModel.getProjectId());
+        statement.setInt(5, testModel.getSessionId());
+        statement.setTimestamp(6, testModel.getStartTime());
+        statement.setTimestamp(7, testModel.getEndTime());
+        statement.setString(8, testModel.getEnv());
+        statement.setString(9, testModel.getBrowser());
+        statement.setInt(10, testModel.getAuthorId());
     }
 
     public static ArrayList<Object[]> getRandomTests() {
@@ -51,7 +94,6 @@ public class TestTable {
         try {
             statement = DatabaseUtils.getConnection().prepareStatement(SELECT_RANDOM_TESTS_QUERY);
             statement.setString(1, randomIdDigits);
-            System.out.println(statement);
 
             ResultSet rs = statement.executeQuery();
             while (rs.next()) {

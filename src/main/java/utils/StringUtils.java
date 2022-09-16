@@ -13,8 +13,7 @@ public class StringUtils {
     public static Timestamp convertStringToTimestamp(String ts) {
         if (ts != null) {
             return Timestamp.valueOf(ts);
-        }
-        else {
+        } else {
             return null;
         }
     }

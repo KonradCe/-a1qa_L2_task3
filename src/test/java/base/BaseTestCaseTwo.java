@@ -1,6 +1,8 @@
 package base;
 
 import aquality.selenium.core.logging.Logger;
+import aquality.selenium.core.utilities.ISettingsFile;
+import aquality.selenium.core.utilities.JsonSettingsFile;
 import models.TestModel;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
@@ -14,6 +16,7 @@ import java.util.Iterator;
 
 public class BaseTestCaseTwo {
 
+    private static final ISettingsFile testData = new JsonSettingsFile("testData.json");
     public Logger logger = null;
     private ArrayList<Object[]> testModels = null;
     private ArrayList<Integer> idsOfInsertedTests = new ArrayList<>();
@@ -26,10 +29,11 @@ public class BaseTestCaseTwo {
         while (testModelIterator.hasNext()) {
             Object[] ts = testModelIterator.next();
             TestModel test = (TestModel) ts[0];
-            test.updateToCurrentProject();
+            test.setProjectId(Integer.parseInt(testData.getValue("/projectId").toString()));
             test.setAuthorId(AuthorTable.getCurrentAuthorId());
-
-            TestTable.insertTest(test);
+            int generatedId = TestTable.insertTest(test);
+            test.setId(generatedId);
+            idsOfInsertedTests.add(generatedId);
         }
 
         return testModels.iterator();
@@ -46,5 +50,8 @@ public class BaseTestCaseTwo {
     @AfterMethod()
     public void afterTest(ITestResult result) {
         logger.info("Test tear down");
+        for (int testId : idsOfInsertedTests) {
+            TestTable.deleteTest(testId);
+        }
     }
 }
