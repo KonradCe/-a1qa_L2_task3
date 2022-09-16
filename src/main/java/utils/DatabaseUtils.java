@@ -31,7 +31,10 @@ public class DatabaseUtils {
 
     public static void closeConnection() {
         try {
-            connection.close();
+            if (connection != null) {
+                connection.close();
+            }
+            connection = null;
         } catch (SQLException e) {
             logger.error(e.getMessage());
         }
