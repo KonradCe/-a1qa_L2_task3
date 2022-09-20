@@ -11,14 +11,16 @@ import java.sql.SQLException;
 public class DatabaseUtils {
 
     private static final Logger logger = Logger.getInstance();
-    private static final ISettingsFile dbCredentials = new JsonSettingsFile("dbCredentials.json");
+    private static final ISettingsFile dbCredentials = new JsonSettingsFile("DbCredentials.json");
+    private static final ISettingsFile dbData = new JsonSettingsFile("ConfigData.json");
+
     private static Connection connection = null;
 
     public static Connection getConnection() {
         if (connection == null) {
             try {
                 Class.forName("com.mysql.cj.jdbc.Driver");
-                connection = DriverManager.getConnection(ConfigDataUtils.getDbUrl(),
+                connection = DriverManager.getConnection(dbData.getValue("/dbUrl").toString(),
                         dbCredentials.getValue("/user").toString(),
                         dbCredentials.getValue("/password").toString());
                 logger.info("Connected to the database");

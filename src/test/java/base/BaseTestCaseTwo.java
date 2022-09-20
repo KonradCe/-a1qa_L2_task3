@@ -6,7 +6,6 @@ import aquality.selenium.core.utilities.JsonSettingsFile;
 import models.TestModel;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.DataProvider;
 import tables.AuthorTable;
@@ -17,7 +16,7 @@ import java.util.Iterator;
 
 public class BaseTestCaseTwo {
 
-    private static final ISettingsFile testData = new JsonSettingsFile("testData.json");
+    private static final ISettingsFile testData = new JsonSettingsFile("TestData.json");
     private final ArrayList<Integer> idsOfInsertedTests = new ArrayList<>();
     public Logger logger = null;
     private ArrayList<Object[]> testModels = null;

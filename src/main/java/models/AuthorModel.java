@@ -5,7 +5,7 @@ import aquality.selenium.core.utilities.JsonSettingsFile;
 
 public class AuthorModel {
 
-    private static final ISettingsFile testData = new JsonSettingsFile("testData.json");
+    private static final ISettingsFile testData = new JsonSettingsFile("TestData.json");
 
     private int id;
     private String name;

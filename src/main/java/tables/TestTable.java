@@ -1,6 +1,8 @@
 package tables;
 
 import aquality.selenium.core.logging.Logger;
+import aquality.selenium.core.utilities.ISettingsFile;
+import aquality.selenium.core.utilities.JsonSettingsFile;
 import models.TestModel;
 import utils.DatabaseUtils;
 import utils.StringUtils;
@@ -13,23 +15,15 @@ import java.util.ArrayList;
 
 public class TestTable {
 
-    // storing SQL queries as string probably isn't the best practice,
-    // this would probably be solved with a help of external db utils / wrappers etc.
-    public static final String SELECT_RANDOM_TESTS_QUERY = "SELECT * FROM test where id LIKE ? LIMIT 10";
-    public static final String DELETE_TEST_QUERY = "DELETE FROM test WHERE id = ?";
-    private static final String INSERT_QUERY = "INSERT INTO test " +
-            "(name, status_id, method_name, project_id, session_id, start_time, end_time, env, browser, author_id) " +
-            "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    private static final String UPDATE_QUERY = "UPDATE test set " +
-            "name = ?, status_id = ?, method_name = ?, project_id = ?, session_id = ?, start_time = ?, end_time = ?, env = ?, browser = ?, author_id = ? " +
-            "WHERE id = ?";
+    private static final ISettingsFile testData = new JsonSettingsFile("TestData.json");
     private static final Logger logger = Logger.getInstance();
 
     public static int insertTest(TestModel testModel) {
         PreparedStatement insertStatement = null;
         int generatedId = -1;
         try {
-            insertStatement = DatabaseUtils.getConnection().prepareStatement(INSERT_QUERY, Statement.RETURN_GENERATED_KEYS);
+            insertStatement = DatabaseUtils.getConnection()
+                    .prepareStatement(testData.getValue("/testTableQueries/insertTest").toString(), Statement.RETURN_GENERATED_KEYS);
             fillOutStatementWithTestData(insertStatement, testModel);
 
             int insertedRows = insertStatement.executeUpdate();
@@ -51,7 +45,7 @@ public class TestTable {
     public static void updateTest(TestModel testModel) {
         PreparedStatement updateStatement = null;
         try {
-            updateStatement = DatabaseUtils.getConnection().prepareStatement(UPDATE_QUERY);
+            updateStatement = DatabaseUtils.getConnection().prepareStatement(testData.getValue("/testTableQueries/updateTest").toString());
             fillOutStatementWithTestData(updateStatement, testModel);
             updateStatement.setInt(11, testModel.getId());
 
@@ -67,7 +61,7 @@ public class TestTable {
     public static void deleteTest(int testId) {
         PreparedStatement deleteStatement = null;
         try {
-            deleteStatement = DatabaseUtils.getConnection().prepareStatement(DELETE_TEST_QUERY);
+            deleteStatement = DatabaseUtils.getConnection().prepareStatement(testData.getValue("/testTableQueries/deleteTest").toString());
             deleteStatement.setInt(1, testId);
             int deletedRowsNb = deleteStatement.executeUpdate();
             logger.info("Deleted %d rows", deletedRowsNb);
@@ -97,7 +91,7 @@ public class TestTable {
         String randomIdDigits = StringUtils.getRandomDoubleDigitString();
         logger.info("Looking up to 10 test records which contain repeating digits in id: " + randomIdDigits);
         try {
-            statement = DatabaseUtils.getConnection().prepareStatement(SELECT_RANDOM_TESTS_QUERY);
+            statement = DatabaseUtils.getConnection().prepareStatement(testData.getValue("/testTableQueries/selectRandomTests").toString());
             statement.setString(1, randomIdDigits);
 
             ResultSet rs = statement.executeQuery();

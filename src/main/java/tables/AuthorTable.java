@@ -1,6 +1,8 @@
 package tables;
 
 import aquality.selenium.core.logging.Logger;
+import aquality.selenium.core.utilities.ISettingsFile;
+import aquality.selenium.core.utilities.JsonSettingsFile;
 import models.AuthorModel;
 import utils.DatabaseUtils;
 
@@ -10,10 +12,7 @@ import java.sql.SQLException;
 
 public class AuthorTable {
 
-    public static final String SELECT_ID_WHERE_LOGIN_QUERY = "SELECT id FROM author WHERE login = ?";
-    public static final String INSERT_AUTHOR_QUERY = "INSERT INTO author (name, login, email) VALUES (?, ?, ?)";
-    public static final String COUNT_AUTHORS_WITH_LOGIN = "SELECT COUNT(id) from author where login = ?";
-
+    private static final ISettingsFile testData = new JsonSettingsFile("TestData.json");
     private static final Logger logger = Logger.getInstance();
 
     public static int getCurrentAuthorId() {
@@ -26,7 +25,7 @@ public class AuthorTable {
 
         PreparedStatement statement = null;
         try {
-            statement = DatabaseUtils.getConnection().prepareStatement(SELECT_ID_WHERE_LOGIN_QUERY);
+            statement = DatabaseUtils.getConnection().prepareStatement(testData.getValue("/authorTableQueries/selectIdByLogin").toString());
             statement.setString(1, author.getLogin());
             ResultSet rs = statement.executeQuery();
             rs.next();
@@ -43,7 +42,7 @@ public class AuthorTable {
     private static boolean isAuthorInDb(String login) {
         PreparedStatement statement = null;
         try {
-            statement = DatabaseUtils.getConnection().prepareStatement(COUNT_AUTHORS_WITH_LOGIN);
+            statement = DatabaseUtils.getConnection().prepareStatement(testData.getValue("/authorTableQueries/countAuthorsWithLogin").toString());
             statement.setString(1, login);
             ResultSet rs = statement.executeQuery();
             rs.next();
@@ -60,7 +59,7 @@ public class AuthorTable {
         PreparedStatement statement = null;
 
         try {
-            statement = DatabaseUtils.getConnection().prepareStatement(INSERT_AUTHOR_QUERY);
+            statement = DatabaseUtils.getConnection().prepareStatement(testData.getValue("/authorTableQueries/insertAuthor").toString());
             statement.setString(1, authorModel.getName());
             statement.setString(2, authorModel.getLogin());
             statement.setString(3, authorModel.getEmail());
